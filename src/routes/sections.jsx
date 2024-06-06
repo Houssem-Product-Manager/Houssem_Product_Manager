@@ -4,6 +4,7 @@ import { Outlet, Navigate, useRoutes } from 'react-router-dom';
 import DashboardLayout from 'src/layouts/dashboard';
 
 import RegisterView from 'src/sections/login/register-view';
+import NewProductForm from 'src/sections/products/newProduct/AddProduct';
 
 export const IndexPage = lazy(() => import('src/pages/app'));
 export const BlogPage = lazy(() => import('src/pages/blog'));
@@ -19,7 +20,7 @@ export default function Router() {
     // Check if token exists in local storage synchronously
     const token = localStorage.getItem('token');
     // Return true if token exists, indicating the user is logged in
-    return token !== null ; // ||true is only for testing
+    return token !== null; // ||true is only for testing
   };
   const routes = useRoutes([
     {
@@ -37,6 +38,7 @@ export default function Router() {
         { path: 'user', element: <UserPage /> },
         { path: 'products', element: <ProductsPage /> },
         { path: 'blog', element: <BlogPage /> },
+        { path: 'new-product', element: <NewProductForm /> },
       ],
     },
     {
@@ -51,6 +53,7 @@ export default function Router() {
       path: '404',
       element: <Page404 />,
     },
+
     {
       path: '*',
       element: <Navigate to="/404" replace />,

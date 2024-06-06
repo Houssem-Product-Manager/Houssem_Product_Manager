@@ -9,7 +9,7 @@ import Typography from '@mui/material/Typography';
 import { fCurrency } from 'src/utils/format-number';
 
 import Label from 'src/components/label';
-import { ColorPreview } from 'src/components/color-utils';
+// import { ColorPreview } from 'src/components/color-utils';
 
 // ----------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ export default function ShopProductCard({ product }) {
   const renderStatus = (
     <Label
       variant="filled"
-      color={(product.status === 'sale' && 'error') || 'info'}
+      color={product.numberInStock > 0 ? 'info' : 'error'}
       sx={{
         zIndex: 9,
         top: 16,
@@ -26,7 +26,8 @@ export default function ShopProductCard({ product }) {
         textTransform: 'uppercase',
       }}
     >
-      {product.status}
+      {product.numberInStock > 0 ? 'In Stock' : 'Out of Stock'} ({' '}
+      <h3 style={{ color: 'black' }}>{product.numberInStock} items</h3>)
     </Label>
   );
 
@@ -34,7 +35,7 @@ export default function ShopProductCard({ product }) {
     <Box
       component="img"
       alt={product.name}
-      src={product.cover}
+      src={product.photo}
       sx={{
         top: 0,
         width: 1,
@@ -55,17 +56,17 @@ export default function ShopProductCard({ product }) {
           textDecoration: 'line-through',
         }}
       >
-        {product.priceSale && fCurrency(product.priceSale)}
+        {product.buyingPrice && fCurrency(product.buyingPrice)}
       </Typography>
       &nbsp;
-      {fCurrency(product.price)}
+      {fCurrency(product.sellingPrice)}
     </Typography>
   );
 
   return (
     <Card>
       <Box sx={{ pt: '100%', position: 'relative' }}>
-        {product.status && renderStatus}
+        {renderStatus}
 
         {renderImg}
       </Box>
@@ -75,8 +76,11 @@ export default function ShopProductCard({ product }) {
           {product.name}
         </Link>
 
+        <Typography variant="body2" color="text.secondary" noWrap>
+          Seller: {product.seller.name}
+        </Typography>
+
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <ColorPreview colors={product.colors} />
           {renderPrice}
         </Stack>
       </Stack>
@@ -85,5 +89,14 @@ export default function ShopProductCard({ product }) {
 }
 
 ShopProductCard.propTypes = {
-  product: PropTypes.object,
+  product: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    numberInStock: PropTypes.number.isRequired,
+    photo: PropTypes.string.isRequired,
+    buyingPrice: PropTypes.number,
+    sellingPrice: PropTypes.number.isRequired,
+    seller: PropTypes.shape({
+      name: PropTypes.string.isRequired,
+    }).isRequired,
+  }).isRequired,
 };
