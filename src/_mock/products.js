@@ -1,5 +1,26 @@
-import { sample } from 'lodash';
-import { faker } from '@faker-js/faker';
+// import { sample } from 'lodash';
+import axios from 'axios';
+// import { faker } from '@faker-js/faker';
+
+import { BaseUrl } from 'src/helpers/BaseUrl';
+import { getToken } from 'src/helpers/getToken';
+
+export const products = async () => {
+  const token = getToken();
+  try {
+    const response = await axios.get(`${BaseUrl}/products`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+      },
+    });
+    console.log(response.data);
+    console.log('some');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    throw error;
+  }
+};
 
 // ----------------------------------------------------------------------
 
@@ -43,23 +64,23 @@ import { faker } from '@faker-js/faker';
 // ----------------------------------------------------------------------
 
 // Dummy data for sellers
-const sellers = [...Array(5)].map((_, index) => ({
-  id: faker.string.uuid(),
-  name: faker.name.fullName(),
-}));
+// const sellers = [...Array(5)].map((_, index) => ({
+//   id: faker.string.uuid(),
+//   name: faker.name.fullName(),
+// }));
 
 // Dummy data for products
-export const products = [...Array(24)].map((_, index) => {
-  const setIndex = index + 1;
+// export const products = [...Array(24)].map((_, index) => {
+//   const setIndex = index + 1;
 
-  return {
-    id: faker.string.uuid(),
-    photo: `/assets/images/products/product_${setIndex}.jpg`,
-    name: faker.commerce.productName(),
-    numberInStock: faker.number.int({ min: 0, max: 3 }),
-    buyingPrice: faker.number.int({ min: 5, max: 50, precision: 0.01 }),
-    sellingPrice: faker.number.int({ min: 10, max: 100, precision: 0.01 }),
-    seller: sample(sellers), // Assign a random seller
-    buyingDate: faker.date.past().toISOString(),
-  };
-});
+//   return {
+//     id: faker.string.uuid(),
+//     photo: `/assets/images/products/product_${setIndex}.jpg`,
+//     name: faker.commerce.productName(),
+//     numberInStock: faker.number.int({ min: 0, max: 3 }),
+//     buyingPrice: faker.number.int({ min: 5, max: 50, precision: 0.01 }),
+//     sellingPrice: faker.number.int({ min: 10, max: 100, precision: 0.01 }),
+//     seller: sample(sellers), // Assign a random seller
+//     buyingDate: faker.date.past().toISOString(),
+//   };
+// });

@@ -2,19 +2,11 @@ import axios from 'axios';
 import React, { useState } from 'react';
 
 import { styled } from '@mui/system';
-import {
-  Box,
-  Stack,
-  Button,
-  Select,
-  MenuItem,
-  TextField,
-  Typography,
-  InputLabel,
-  FormControl,
-} from '@mui/material';
+import { Box, Stack, Button, TextField, Typography } from '@mui/material';
 
+import CustomModal from 'src/helpers/modal';
 import { BaseUrl } from 'src/helpers/BaseUrl';
+import { getToken } from 'src/helpers/getToken';
 
 const FormContainer = styled(Box)({
   padding: 20,
@@ -24,50 +16,88 @@ const FormContainer = styled(Box)({
 });
 
 const NewProductForm = () => {
+  const token = getToken();
   const [product, setProduct] = useState({
     name: '',
     numberInStock: '',
     photo: '',
     buyingPrice: '',
     buyingDate: '',
-    seller: '',
+  });
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [modalState, setModalState] = useState({
+    visible: false,
+    message: '',
+    color: 'textPrimary',
   });
 
-  const sellers = []; // Assuming you have a list of sellers
   const handleChange = (e) => {
     setProduct({ ...product, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e) => {
-    setProduct({ ...product, photo: e.target.files[0] });
+    const file = e.target.files[0];
+    previewFiles(file);
+  };
+
+  const [tempsrc, setTempsrc] = useState('');
+  const previewFiles = (file) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      setTempsrc(reader.result);
+      setProduct({ ...product, photo: reader.result });
+    };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    Object.keys(product).forEach((key) => {
-      formData.append(key, product[key]);
-    });
 
     try {
-      const response = await axios.post(`${BaseUrl}/products/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await axios.post(
+        `${BaseUrl}/products`,
+        { product },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+          },
+        }
+      );
+      console.log(response.data);
+      setModalState({
+        visible: true,
+        message: 'product added successfully',
+        color: 'green',
       });
-      console.log('Product added successfully:', response.data);
-      // Reset the form or provide feedback
+      // Reset the form
       setProduct({
         name: '',
         numberInStock: '',
         photo: '',
-        sellingPrice: '',
+        buyingPrice: '',
         buyingDate: '',
-        seller: '',
       });
+      setTempsrc(''); // Reset the image preview
     } catch (error) {
-      console.error('Error adding product:', error);
+      setModalState({
+        visible: true,
+        message: error.response.data.error,
+        color: 'red',
+      });
+      console.log(error.response);
     }
+  };
+
+  const handleCloseModal = () => {
+    setModalState({ ...modalState, visible: false });
   };
 
   return (
@@ -96,7 +126,7 @@ const NewProductForm = () => {
           />
           <TextField
             name="buyingPrice"
-            label="Buying Price"
+            label="buying Price"
             value={product.buyingPrice}
             onChange={handleChange}
             type="number"
@@ -108,6 +138,9 @@ const NewProductForm = () => {
             label="Buying Date"
             value={product.buyingDate}
             onChange={handleChange}
+            inputProps={{
+              max: getTodayDate(),
+            }}
             type="date"
             fullWidth
             InputLabelProps={{
@@ -115,30 +148,35 @@ const NewProductForm = () => {
             }}
             required
           />
-          <FormControl fullWidth required>
-            <InputLabel id="seller-label">Seller</InputLabel>
-            <Select
-              labelId="seller-label"
-              name="seller"
-              value={product.seller}
-              onChange={handleChange}
-            >
-              {sellers.map((seller) => (
-                <MenuItem key={seller.id} value={seller.id}>
-                  {seller.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
           <Button variant="contained" component="label">
             Upload Photo
             <input type="file" hidden onChange={handleFileChange} />
           </Button>
+          {tempsrc && (
+            <Box
+              component="img"
+              alt="Product Preview"
+              src={tempsrc}
+              sx={{
+                width: '50%',
+                height: '40%',
+                objectFit: 'cover',
+                borderRadius: 8,
+                marginTop: 2,
+              }}
+            />
+          )}
           <Button type="submit" variant="contained" color="primary">
             Add Product
           </Button>
         </Stack>
       </form>
+      <CustomModal
+        visible={modalState.visible}
+        message={modalState.message}
+        color={modalState.color}
+        onClose={handleCloseModal}
+      />
     </FormContainer>
   );
 };
