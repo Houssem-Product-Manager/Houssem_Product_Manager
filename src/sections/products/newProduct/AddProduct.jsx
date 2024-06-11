@@ -1,5 +1,6 @@
 import axios from 'axios';
-import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import React, { useState, useEffect } from 'react';
 
 import { styled } from '@mui/system';
 import { Box, Stack, Button, TextField, Typography } from '@mui/material';
@@ -15,7 +16,7 @@ const FormContainer = styled(Box)({
   boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
 });
 
-const NewProductForm = () => {
+export default function NewProductForm({ productData = {}, isEdit = false, onClose }) {
   const token = getToken();
   const [product, setProduct] = useState({
     name: '',
@@ -23,7 +24,9 @@ const NewProductForm = () => {
     photo: '',
     buyingPrice: '',
     buyingDate: '',
+    priceToSell: '',
   });
+
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -37,6 +40,13 @@ const NewProductForm = () => {
     message: '',
     color: 'textPrimary',
   });
+
+  useEffect(() => {
+    if (isEdit) {
+      setProduct(productData);
+      setTempsrc(productData.photo);
+    }
+  }, [isEdit, productData]);
 
   const handleChange = (e) => {
     setProduct({ ...product, [e.target.name]: e.target.value });
@@ -59,33 +69,38 @@ const NewProductForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await axios.post(
-        `${BaseUrl}/products`,
-        { product },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // Add the token to the Authorization header
-          },
-        }
-      );
+      const url = isEdit ? `${BaseUrl}/products/${product._id}` : `${BaseUrl}/products`;
+      const method = isEdit ? 'put' : 'post';
+      const response = await axios({
+        method,
+        url,
+        data: { product },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
       console.log(response.data);
       setModalState({
         visible: true,
-        message: 'product added successfully',
+        message: isEdit ? 'Product updated successfully' : 'Product added successfully',
         color: 'green',
       });
-      // Reset the form
-      setProduct({
-        name: '',
-        numberInStock: '',
-        photo: '',
-        buyingPrice: '',
-        buyingDate: '',
-      });
-      setTempsrc(''); // Reset the image preview
+      // Reset the form if not editing
+      if (!isEdit) {
+        setProduct({
+          name: '',
+          numberInStock: '',
+          photo: '',
+          buyingPrice: '',
+          buyingDate: '',
+          priceToSell:''
+        });
+        setTempsrc(''); // Reset the image preview
+      }
+      onClose();
+      window.location.reload();
     } catch (error) {
       setModalState({
         visible: true,
@@ -103,7 +118,7 @@ const NewProductForm = () => {
   return (
     <FormContainer>
       <Typography variant="h4" gutterBottom>
-        Add New Product
+        {isEdit ? 'Edit Product' : 'Add New Product'}
       </Typography>
       <form onSubmit={handleSubmit}>
         <Stack spacing={2}>
@@ -126,8 +141,17 @@ const NewProductForm = () => {
           />
           <TextField
             name="buyingPrice"
-            label="buying Price"
+            label="Buying Price"
             value={product.buyingPrice}
+            onChange={handleChange}
+            type="number"
+            fullWidth
+            required
+          />
+          <TextField
+            name="priceToSell"
+            label="Price to sell with"
+            value={product.priceToSell}
             onChange={handleChange}
             type="number"
             fullWidth
@@ -146,7 +170,6 @@ const NewProductForm = () => {
             InputLabelProps={{
               shrink: true,
             }}
-            required
           />
           <Button variant="contained" component="label">
             Upload Photo
@@ -167,7 +190,7 @@ const NewProductForm = () => {
             />
           )}
           <Button type="submit" variant="contained" color="primary">
-            Add Product
+            {isEdit ? 'Update Product' : 'Add Product'}
           </Button>
         </Stack>
       </form>
@@ -179,6 +202,9 @@ const NewProductForm = () => {
       />
     </FormContainer>
   );
+}
+NewProductForm.propTypes = {
+  productData: PropTypes.any,
+  isEdit: PropTypes.bool,
+  onClose: PropTypes.func,
 };
-
-export default NewProductForm;

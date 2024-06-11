@@ -9,6 +9,8 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Popover from '@mui/material/Popover';
+import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -21,8 +23,10 @@ import { BaseUrl } from 'src/helpers/BaseUrl';
 import { getToken } from 'src/helpers/getToken';
 
 import Label from 'src/components/label';
+import Iconify from 'src/components/iconify';
 
 import SalesHistory from './sales/Sales-view';
+import NewProductForm from './newProduct/AddProduct';
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +34,27 @@ export default function ShopProductCard({ product }) {
   const [openSellDialog, setOpenSellDialog] = useState(false);
   const [openHistoryDialog, setOpenHistoryDialog] = useState(false);
   const [quantity, setQuantity] = useState(0);
+  const [cmnt, setCmnt] = useState('');
   const [sellingPrice, setSellingPrice] = useState(0);
+  const [open, setOpen] = useState(null);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+
+  const handleOpenEditDialog = () => {
+    setOpenEditDialog(true);
+    handleCloseMenu();
+  };
+
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+  };
+
+  const handleOpenMenu = (event) => {
+    setOpen(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setOpen(null);
+  };
 
   const handleClickOpenSellDialog = () => {
     setOpenSellDialog(true);
@@ -46,6 +70,7 @@ export default function ShopProductCard({ product }) {
 
   const handleCloseHistoryDialog = () => {
     setOpenHistoryDialog(false);
+    setOpen(null);
   };
 
   const token = getToken();
@@ -53,7 +78,7 @@ export default function ShopProductCard({ product }) {
     try {
       const response = await axios.post(
         `${BaseUrl}/products/${product._id}/sell`,
-        { sellingPrice, qte: quantity },
+        { sellingPrice, qte: quantity, comment: cmnt },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -65,8 +90,30 @@ export default function ShopProductCard({ product }) {
       console.log(`Product sold successfully: ${response.data.product}`);
       // You might want to update the UI here based on the response
       handleCloseSellDialog();
+      window.location.reload();
     } catch (error) {
       console.error('Error selling product:', error);
+    }
+  };
+  const handleDeleteProduct = async () => {
+    const confirmed = window.confirm('Do you really want to delete this product?');
+
+    if (confirmed) {
+      try {
+        const response = await axios.delete(`${BaseUrl}/products/delete/${product._id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`, // Assuming you use a token for authentication
+          },
+        });
+
+        console.log('Product deleted successfully', response.data);
+        // You might want to update the UI here based on the response
+        handleCloseMenu();
+        window.location.reload();
+      } catch (error) {
+        console.error('Error deleting product:', error);
+      }
     }
   };
 
@@ -108,28 +155,48 @@ export default function ShopProductCard({ product }) {
       {fCurrency(product.buyingPrice)}
     </Typography>
   );
+  const sellingSug = (
+    <Typography variant="subtitle1" sx={{ backgroundColor: 'pink' }}>
+      to sell: &nbsp;
+      {fCurrency(product.priceToSell)}
+    </Typography>
+  );
 
   return (
     <>
       <Card>
         <Box sx={{ pt: '100%', position: 'relative' }}>
           {renderStatus}
-          <Button
-            sx={{
-              zIndex: 9,
-              top: 16,
-              left: 16,
-              position: 'absolute',
-              textTransform: 'uppercase',
-            }}
-            variant="contained"
-            color="inherit"
-            style={{ width: '30%' }}
-            onClick={handleClickOpenHistoryDialog} // Handle click to open sales history dialog
-          >
-            Sales History
-          </Button>
+
           {renderImg}
+          <Box sx={{ top: 0, right: 0, p: 1 }}>
+            <Button size="small" onClick={handleOpenMenu} sx={{ color: 'text.secondary' }}>
+              <Iconify icon="eva:more-vertical-fill" width={20} height={20} />
+            </Button>
+            <Popover
+              open={!!open}
+              anchorEl={open}
+              onClose={handleCloseMenu}
+              anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              PaperProps={{
+                sx: { width: 140 },
+              }}
+            >
+              <MenuItem onClick={handleClickOpenHistoryDialog}>
+                <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
+                Sales History
+              </MenuItem>
+              <MenuItem onClick={handleOpenEditDialog}>
+                <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
+                Edit
+              </MenuItem>
+              <MenuItem onClick={handleDeleteProduct} sx={{ color: 'error.main' }}>
+                <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
+                Delete
+              </MenuItem>
+            </Popover>
+          </Box>
         </Box>
 
         <Stack spacing={2} sx={{ p: 3 }}>
@@ -140,9 +207,9 @@ export default function ShopProductCard({ product }) {
           <Typography variant="body2" color="text.secondary" noWrap>
             Buyer: {product.buyer?.fullName}
           </Typography>
-
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             {renderPrice}
+            {sellingSug}
           </Stack>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             Buying Date: {format(new Date(product.buyingDate), 'yyyy-MM-dd')}
@@ -185,6 +252,15 @@ export default function ShopProductCard({ product }) {
             value={sellingPrice}
             onChange={(e) => setSellingPrice(e.target.value)}
           />
+          <TextField
+            margin="dense"
+            id="cmnt"
+            label="Comment"
+            fullWidth
+            variant="outlined"
+            value={cmnt}
+            onChange={(e) => setCmnt(e.target.value)}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseSellDialog}>Cancel</Button>
@@ -192,6 +268,9 @@ export default function ShopProductCard({ product }) {
             Sell
           </Button>
         </DialogActions>
+      </Dialog>
+      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
+        <NewProductForm productData={product} isEdit onClose={handleCloseEditDialog} />
       </Dialog>
 
       {/* Sales History Dialog */}

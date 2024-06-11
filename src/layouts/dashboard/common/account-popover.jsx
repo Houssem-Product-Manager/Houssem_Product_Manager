@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import axios from 'axios';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
@@ -10,6 +11,8 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 
 import { account } from 'src/_mock/account';
+import { BaseUrl } from 'src/helpers/BaseUrl';
+import { getToken } from 'src/helpers/getToken';
 
 // ----------------------------------------------------------------------
 
@@ -40,6 +43,28 @@ export default function AccountPopover() {
   const handleClose = () => {
     setOpen(null);
   };
+  const logout = () => {
+    localStorage.removeItem('token');
+    window.location.reload();
+  };
+  const [user, setUser] = useState();
+  const authToken = getToken();
+  const getUser = async (token) => {
+    try {
+      const response = await axios.get(`${BaseUrl}/auth/get-user`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Add the token to the Authorization header
+        },
+      });
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      throw error;
+    }
+  };
+  useEffect(() => {
+    getUser(authToken);
+  }, [authToken]);
 
   return (
     <>
@@ -57,14 +82,14 @@ export default function AccountPopover() {
       >
         <Avatar
           src={account.photoURL}
-          alt={account.displayName}
+          alt={user?.fullName}
           sx={{
             width: 36,
             height: 36,
             border: (theme) => `solid 2px ${theme.palette.background.default}`,
           }}
         >
-          {account.displayName.charAt(0).toUpperCase()}
+          {user?.fullName.charAt(0).toUpperCase()}
         </Avatar>
       </IconButton>
 
@@ -85,10 +110,10 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2 }}>
           <Typography variant="subtitle2" noWrap>
-            {account.displayName}
+            {user?.fullName}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
+            {user?.email}
           </Typography>
         </Box>
 
@@ -105,7 +130,7 @@ export default function AccountPopover() {
         <MenuItem
           disableRipple
           disableTouchRipple
-          onClick={handleClose}
+          onClick={logout}
           sx={{ typography: 'body2', color: 'error.main', py: 1.5 }}
         >
           Logout

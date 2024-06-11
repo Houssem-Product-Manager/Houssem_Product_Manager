@@ -20,6 +20,8 @@ export default function SalesHistory({ sales }) {
               </Typography>
               <Typography variant="body2">Selling Price: {sale.sellingPrice}</Typography>
               <Typography variant="body2">Quantity Sold: {sale.quantitySold}</Typography>
+              <Typography variant="body2">Comment: {sale.comment}</Typography>
+
             </Box>
           ))
         ) : (
