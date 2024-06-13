@@ -22,16 +22,16 @@ export default function AppWebsiteVisits({ title, subheader, chart, ...other }) 
       type: series.map((i) => i.fill),
     },
     labels,
-    xaxis: {
-      type: 'datetime',
-    },
+    // xaxis: {
+    //   type: 'datetime',
+    // },
     tooltip: {
       shared: true,
       intersect: false,
       y: {
         formatter: (value) => {
           if (typeof value !== 'undefined') {
-            return `${value.toFixed(0)} visits`;
+            return `${value.toFixed(0)} TND`;
           }
           return value;
         },

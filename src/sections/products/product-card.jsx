@@ -17,7 +17,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
-import { fCurrency } from 'src/utils/format-number';
+// import { fCurrency } from 'src/utils/format-number';
 
 import { BaseUrl } from 'src/helpers/BaseUrl';
 import { getToken } from 'src/helpers/getToken';
@@ -152,13 +152,13 @@ export default function ShopProductCard({ product }) {
   const renderPrice = (
     <Typography variant="subtitle1">
       Bought with: &nbsp;
-      {fCurrency(product.buyingPrice)}
+      {product.buyingPrice} TND
     </Typography>
   );
   const sellingSug = (
     <Typography variant="subtitle1" sx={{ backgroundColor: 'pink' }}>
       to sell: &nbsp;
-      {fCurrency(product.priceToSell)}
+      {product.priceToSell} TND
     </Typography>
   );
 
@@ -209,6 +209,8 @@ export default function ShopProductCard({ product }) {
           </Typography>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             {renderPrice}
+          </Stack>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
             {sellingSug}
           </Stack>
           <Stack direction="row" alignItems="center" justifyContent="space-between">

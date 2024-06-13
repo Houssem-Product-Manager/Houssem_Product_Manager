@@ -13,7 +13,7 @@ import Chart, { useChart } from 'src/components/chart';
 export default function AppConversionRates({ title, subheader, chart, ...other }) {
   const { colors, series, options } = chart;
 
-  const chartSeries = series.map((i) => i.value);
+  const chartSeries = series?.map((i) => i.value);
 
   const chartOptions = useChart({
     colors,
