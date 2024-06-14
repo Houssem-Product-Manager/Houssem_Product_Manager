@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 
 import { styled } from '@mui/system';
-import { Box, Stack, Button, TextField, Typography } from '@mui/material';
+import { Box, Stack, Button, TextField, Typography, IconButton } from '@mui/material';
+// import AddIcon from '@mui/icons-material/Add';
 
 import CustomModal from 'src/helpers/modal';
 import { BaseUrl } from 'src/helpers/BaseUrl';
@@ -20,13 +21,12 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
   const token = getToken();
   const [product, setProduct] = useState({
     name: '',
-    numberInStock: '',
     photo: '',
     buyingPrice: '',
     buyingDate: '',
     priceToSell: '',
+    sizes: [{ size: '', stock: '' }],
   });
-
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -49,7 +49,18 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
   }, [isEdit, productData]);
 
   const handleChange = (e) => {
-    setProduct({ ...product, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setProduct({ ...product, [name]: value });
+  };
+
+  const handleSizeChange = (index, field, value) => {
+    const newSizes = [...product.sizes];
+    newSizes[index] = { ...newSizes[index], [field]: value };
+    setProduct({ ...product, sizes: newSizes });
+  };
+
+  const handleAddSize = () => {
+    setProduct({ ...product, sizes: [...product.sizes, { size: '', stock: '' }] });
   };
 
   const handleFileChange = (e) => {
@@ -69,13 +80,14 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const numberInStock = product.sizes.reduce((acc, size) => acc + Number(size.stock), 0);
     try {
       const url = isEdit ? `${BaseUrl}/products/${product._id}` : `${BaseUrl}/products`;
       const method = isEdit ? 'put' : 'post';
       const response = await axios({
         method,
         url,
-        data: { product },
+        data: { ...product, numberInStock },
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -91,11 +103,11 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
       if (!isEdit) {
         setProduct({
           name: '',
-          numberInStock: '',
           photo: '',
           buyingPrice: '',
           buyingDate: '',
-          priceToSell:''
+          priceToSell: '',
+          sizes: [{ size: '', stock: '' }],
         });
         setTempsrc(''); // Reset the image preview
       }
@@ -130,15 +142,28 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
             fullWidth
             required
           />
-          <TextField
-            name="numberInStock"
-            label="Number in Stock"
-            value={product.numberInStock}
-            onChange={handleChange}
-            type="number"
-            fullWidth
-            required
-          />
+          {product.sizes.map((sizeObj, index) => (
+            <Box key={index} sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label={`Size ${index + 1}`}
+                value={sizeObj.size}
+                onChange={(e) => handleSizeChange(index, 'size', e.target.value)}
+                fullWidth
+                required
+              />
+              <TextField
+                label={`Stock ${index + 1}`}
+                value={sizeObj.stock}
+                onChange={(e) => handleSizeChange(index, 'stock', e.target.value)}
+                type="number"
+                fullWidth
+                required
+              />
+            </Box>
+          ))}
+          <IconButton onClick={handleAddSize} color="primary">
+            +
+          </IconButton>
           <TextField
             name="buyingPrice"
             label="Buying Price"
@@ -203,6 +228,7 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
     </FormContainer>
   );
 }
+
 NewProductForm.propTypes = {
   productData: PropTypes.any,
   isEdit: PropTypes.bool,

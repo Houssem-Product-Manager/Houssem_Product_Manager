@@ -13,7 +13,7 @@ import ProductCard from '../product-card';
 
 // ----------------------------------------------------------------------
 
-export default function ProductsView() {
+export default function ProductsOutOstockView() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const authToken = getToken();
@@ -26,7 +26,7 @@ export default function ProductsView() {
         },
       });
       // Filter products with numberInStock > 0
-      const availableProducts = response.data.filter(product => product.numberInStock > 0);
+      const availableProducts = response.data.filter(product => product.numberInStock === 0);
       setProducts(availableProducts);
       setFilteredProducts(availableProducts); // Initialize filtered products
       return availableProducts;
@@ -51,7 +51,7 @@ export default function ProductsView() {
     <Container>
       <Searchbar onSearch={handleSearch} />
       <Typography variant="h4" sx={{ mb: 5 }}>
-        Products
+        Products out of stock
       </Typography>
 
       {filteredProducts.length > 0 ? (

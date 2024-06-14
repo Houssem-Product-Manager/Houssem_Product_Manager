@@ -5,6 +5,7 @@ import DashboardLayout from 'src/layouts/dashboard';
 
 import RegisterView from 'src/sections/login/register-view';
 import NewProductForm from 'src/sections/products/newProduct/AddProduct';
+import ProductsOutOstockView from 'src/sections/products/view/product-out-of-stock-view';
 
 export const IndexPage = lazy(() => import('src/pages/app'));
 export const BlogPage = lazy(() => import('src/pages/blog'));
@@ -39,6 +40,7 @@ export default function Router() {
         { path: 'products', element: <ProductsPage /> },
         // { path: 'blog', element: <BlogPage /> },
         { path: 'new-product', element: <NewProductForm /> },
+        { path: 'products-out-of-stock', element: <ProductsOutOstockView /> },
       ],
     },
     {

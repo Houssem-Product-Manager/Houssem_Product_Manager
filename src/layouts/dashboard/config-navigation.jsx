@@ -27,11 +27,11 @@ const navConfig = [
     path: '/new-product',
     icon: icon('plus-icon'),
   },
-  // {
-  //   title: 'blog',
-  //   path: '/blog',
-  //   icon: icon('ic_blog'),
-  // },
+   {
+     title: 'product out of stock',
+     path: '/products-out-of-stock',
+     icon: icon('ic_blog'),
+   },
 ];
 
 export default navConfig;

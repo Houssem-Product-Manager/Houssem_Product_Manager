@@ -9,6 +9,7 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Select from '@mui/material/Select';
 import Popover from '@mui/material/Popover';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
@@ -16,11 +17,11 @@ import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-
-// import { fCurrency } from 'src/utils/format-number';
+import { List, ListItem, ListItemText } from '@mui/material';
 
 import { BaseUrl } from 'src/helpers/BaseUrl';
 import { getToken } from 'src/helpers/getToken';
+import ErrorModal from 'src/helpers/ErrorModal';
 
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
@@ -36,12 +37,18 @@ export default function ShopProductCard({ product }) {
   const [quantity, setQuantity] = useState(0);
   const [cmnt, setCmnt] = useState('');
   const [sellingPrice, setSellingPrice] = useState(0);
+  const [selectedSize, setSelectedSize] = useState('');
   const [open, setOpen] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
-
+  const [errorModalOpen, setErrorModalOpen] = useState(false); // State to control the error modal
+  const [errorMessage, setErrorMessage] = useState(''); // State to store the error message
+  const [openAvailable, setOpenAvailable] = useState(false);
   const handleOpenEditDialog = () => {
     setOpenEditDialog(true);
     handleCloseMenu();
+  };
+  const onCloseAvailable = () => {
+    setOpenAvailable(false);
   };
 
   const handleCloseEditDialog = () => {
@@ -78,7 +85,7 @@ export default function ShopProductCard({ product }) {
     try {
       const response = await axios.post(
         `${BaseUrl}/products/${product._id}/sell`,
-        { sellingPrice, qte: quantity, comment: cmnt },
+        { sellingPrice, qte: quantity, comment: cmnt, size: selectedSize },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -92,9 +99,12 @@ export default function ShopProductCard({ product }) {
       handleCloseSellDialog();
       window.location.reload();
     } catch (error) {
+      setErrorMessage(error.response?.data?.error);
+      setErrorModalOpen(true);
       console.error('Error selling product:', error);
     }
   };
+
   const handleDeleteProduct = async () => {
     const confirmed = window.confirm('Do you really want to delete this product?');
 
@@ -112,6 +122,8 @@ export default function ShopProductCard({ product }) {
         handleCloseMenu();
         window.location.reload();
       } catch (error) {
+        setErrorMessage('Error deleting product: ', error.response?.data?.error || error.message);
+        setErrorModalOpen(true);
         console.error('Error deleting product:', error);
       }
     }
@@ -155,6 +167,7 @@ export default function ShopProductCard({ product }) {
       {product.buyingPrice} TND
     </Typography>
   );
+
   const sellingSug = (
     <Typography variant="subtitle1" sx={{ backgroundColor: 'pink' }}>
       to sell: &nbsp;
@@ -183,10 +196,8 @@ export default function ShopProductCard({ product }) {
                 sx: { width: 140 },
               }}
             >
-              <MenuItem onClick={handleClickOpenHistoryDialog}>
-                <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
-                Sales History
-              </MenuItem>
+              <MenuItem onClick={() => setOpenAvailable(true)}>Available Items</MenuItem>
+              <MenuItem onClick={handleClickOpenHistoryDialog}>Sales History</MenuItem>
               <MenuItem onClick={handleOpenEditDialog}>
                 <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
                 Edit
@@ -263,6 +274,20 @@ export default function ShopProductCard({ product }) {
             value={cmnt}
             onChange={(e) => setCmnt(e.target.value)}
           />
+          <Select
+            labelId="size-select-label"
+            id="size-select"
+            value={selectedSize}
+            onChange={(e) => setSelectedSize(e.target.value)}
+            fullWidth
+            variant="outlined"
+          >
+            {product.sizes.map((size, index) => (
+              <MenuItem key={index} value={size.size} disabled={size.stock === 0}>
+                {size.size} {size.stock === 0 && '(Out of Stock)'}
+              </MenuItem>
+            ))}
+          </Select>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseSellDialog}>Cancel</Button>
@@ -271,6 +296,7 @@ export default function ShopProductCard({ product }) {
           </Button>
         </DialogActions>
       </Dialog>
+
       <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
         <NewProductForm productData={product} isEdit onClose={handleCloseEditDialog} />
       </Dialog>
@@ -287,6 +313,35 @@ export default function ShopProductCard({ product }) {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* Availabe Items */}
+      <Dialog open={openAvailable} onClose={onCloseAvailable}>
+        <DialogTitle>Product Inventory</DialogTitle>
+        <DialogContent>
+          <Typography variant="h6">{product.name}</Typography>
+          <List>
+            {product.sizes.map((size, index) => (
+              <ListItem key={index}>
+                <ListItemText
+                  primary={`Size: ${size.size}`}
+                  secondary={`Stock: ${size.stock}`}
+                  primaryTypographyProps={{ color: size.stock === 0 ? 'red' : 'inherit' }}
+                  secondaryTypographyProps={{ color: size.stock === 0 ? 'red' : 'inherit' }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onCloseAvailable}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Error Modal */}
+      <ErrorModal
+        open={errorModalOpen}
+        onClose={() => setErrorModalOpen(false)}
+        message={errorMessage}
+      />
     </>
   );
 }

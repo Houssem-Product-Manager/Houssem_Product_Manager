@@ -14,7 +14,7 @@ import Loading from 'src/helpers/Loading/Loading';
 
 // import AppTasks from '../app-tasks';
 // import AppNewsUpdate from '../app-news-update';
-// import AppOrderTimeline from '../app-order-timeline';
+import AppOrderTimeline from '../app-order-timeline';
 // import AppCurrentVisits from '../app-current-visits';
 import AppWebsiteVisits from '../app-website-visits';
 import AppWidgetSummary from '../app-widget-summary';
@@ -45,6 +45,15 @@ export default function AppView() {
       setLoading(false);
     }
   };
+  // Map monthly profits to the structure expected by AppOrderTimeline
+  const orderTimelineData = stats?.monthlyProfits
+    ? Object.entries(stats.monthlyProfits).map(([month, profit]) => ({
+        id: month,
+        title: `${month}: Profit ${profit.toFixed(2)} TND`,
+        type: 'profit',
+        time: new Date(month), // This assumes month is in 'YYYY-MM' format
+      }))
+    : [];
 
   useEffect(() => {
     fetchDashboardStats(authToken);
@@ -96,15 +105,7 @@ export default function AppView() {
             icon={<img alt="icon" src="/assets/icons/glass/ic_glass_message.png" />}
           />
         </Grid>
-        <Grid xs={12} sm={6} md={3}>
-          <AppWidgetSummary
-            title="Inventory Value"
-            total={`${stats?.inventoryValue} TND`}
-            color="error"
-            icon={<img alt="icon" src="/assets/icons/glass/inventrory.png" />}
-          />
-        </Grid>
-
+        
         <Grid xs={12} md={6} lg={8}>
           <AppWebsiteVisits
             title="Products Wise Profit"
@@ -119,6 +120,14 @@ export default function AppView() {
                 },
               ],
             }}
+          />
+        </Grid>
+        <Grid xs={12} sm={6} md={3}>
+          <AppWidgetSummary
+            title="Inventory Value"
+            total={`${stats?.inventoryValue} TND`}
+            color="error"
+            icon={<img alt="icon" src="/assets/icons/glass/inventrory.png" />}
           />
         </Grid>
 
@@ -150,6 +159,9 @@ export default function AppView() {
             />
           )}
         </Grid>
+        <Grid xs={12} md={6} lg={4}>
+          <AppOrderTimeline title="Monthly Profits" list={orderTimelineData} />
+        </Grid>
 
         {/* <Grid xs={12} md={6} lg={4}>
           <AppCurrentSubject
@@ -164,7 +176,8 @@ export default function AppView() {
             }}
           />
         </Grid>
-
+*/}
+        {/*
         <Grid xs={12} md={6} lg={8}>
           <AppNewsUpdate
             title="News Update"
@@ -177,25 +190,9 @@ export default function AppView() {
             }))}
           />
         </Grid>
+*/}
 
-        <Grid xs={12} md={6} lg={4}>
-          <AppOrderTimeline
-            title="Order Timeline"
-            list={[...Array(5)].map((_, index) => ({
-              id: faker.string.uuid(),
-              title: [
-                '1983, orders, $4220',
-                '12 Invoices have been paid',
-                'Order #37745 from September',
-                'New order placed #XF-2356',
-                'New order placed #XF-2346',
-              ][index],
-              type: `order${index + 1}`,
-              time: faker.date.past(),
-            }))}
-          />
-        </Grid>
-
+        {/*
         <Grid xs={12} md={6} lg={4}>
           <AppTrafficBySite
             title="Traffic by Site"
