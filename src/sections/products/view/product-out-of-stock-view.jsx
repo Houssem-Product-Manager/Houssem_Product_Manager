@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 
 import { BaseUrl } from 'src/helpers/BaseUrl';
 import { getToken } from 'src/helpers/getToken';
+import Loading from 'src/helpers/Loading/Loading';
 import Searchbar from 'src/layouts/dashboard/common/searchbar';
 
 import ProductCard from '../product-card';
@@ -15,23 +16,27 @@ import ProductCard from '../product-card';
 
 export default function ProductsOutOstockView() {
   const [products, setProducts] = useState([]);
+  const [IsLoaing, setIsLoading] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const authToken = getToken();
 
   const fetchProducts = async (token) => {
     try {
+      setIsLoading(true);
       const response = await axios.get(`${BaseUrl}/products`, {
         headers: {
           Authorization: `Bearer ${token}`, // Add the token to the Authorization header
         },
       });
       // Filter products with numberInStock > 0
-      const availableProducts = response.data.filter(product => product.numberInStock === 0);
+      const availableProducts = response.data.filter((product) => product.numberInStock === 0);
       setProducts(availableProducts);
       setFilteredProducts(availableProducts); // Initialize filtered products
+      setIsLoading(false);
       return availableProducts;
     } catch (error) {
       console.error('Error fetching products:', error);
+      setIsLoading(false);
       throw error;
     }
   };
@@ -46,6 +51,9 @@ export default function ProductsOutOstockView() {
     );
     setFilteredProducts(filtered);
   };
+  if (IsLoaing) {
+    return <Loading />;
+  }
 
   return (
     <Container>

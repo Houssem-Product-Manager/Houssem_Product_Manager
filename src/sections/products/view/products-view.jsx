@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 
 import { BaseUrl } from 'src/helpers/BaseUrl';
 import { getToken } from 'src/helpers/getToken';
+import Loading from 'src/helpers/Loading/Loading';
 import Searchbar from 'src/layouts/dashboard/common/searchbar';
 
 import ProductCard from '../product-card';
@@ -16,22 +17,26 @@ import ProductCard from '../product-card';
 export default function ProductsView() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [Isloading, setIsloading] = useState(false);
   const authToken = getToken();
 
   const fetchProducts = async (token) => {
     try {
+      setIsloading(true);
       const response = await axios.get(`${BaseUrl}/products`, {
         headers: {
           Authorization: `Bearer ${token}`, // Add the token to the Authorization header
         },
       });
       // Filter products with numberInStock > 0
-      const availableProducts = response.data.filter(product => product.numberInStock > 0);
+      const availableProducts = response.data.filter((product) => product.numberInStock > 0);
       setProducts(availableProducts);
       setFilteredProducts(availableProducts); // Initialize filtered products
+      setIsloading(false);
       return availableProducts;
     } catch (error) {
       console.error('Error fetching products:', error);
+      setIsloading(false);
       throw error;
     }
   };
@@ -46,7 +51,9 @@ export default function ProductsView() {
     );
     setFilteredProducts(filtered);
   };
-
+  if (Isloading) {
+    return <Loading />;
+  }
   return (
     <Container>
       <Searchbar onSearch={handleSearch} />

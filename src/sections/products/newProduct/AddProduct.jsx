@@ -3,12 +3,13 @@ import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 
 import { styled } from '@mui/system';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { Box, Stack, Button, TextField, Typography, IconButton } from '@mui/material';
-// import AddIcon from '@mui/icons-material/Add';
 
 import CustomModal from 'src/helpers/modal';
 import { BaseUrl } from 'src/helpers/BaseUrl';
 import { getToken } from 'src/helpers/getToken';
+import Loading from 'src/helpers/Loading/Loading';
 
 const FormContainer = styled(Box)({
   padding: 20,
@@ -19,6 +20,7 @@ const FormContainer = styled(Box)({
 
 export default function NewProductForm({ productData = {}, isEdit = false, onClose }) {
   const token = getToken();
+  const [IsLoaing, setIsLoading] = useState(false);
   const [product, setProduct] = useState({
     name: '',
     photo: '',
@@ -63,6 +65,12 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
     setProduct({ ...product, sizes: [...product.sizes, { size: '', stock: '' }] });
   };
 
+  const handleDeleteSize = (index) => {
+    const newSizes = [...product.sizes];
+    newSizes.splice(index, 1);
+    setProduct({ ...product, sizes: newSizes });
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     previewFiles(file);
@@ -82,6 +90,7 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
     e.preventDefault();
     const numberInStock = product.sizes.reduce((acc, size) => acc + Number(size.stock), 0);
     try {
+      setIsLoading(true);
       const url = isEdit ? `${BaseUrl}/products/${product._id}` : `${BaseUrl}/products`;
       const method = isEdit ? 'put' : 'post';
       const response = await axios({
@@ -99,6 +108,7 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
         message: isEdit ? 'Product updated successfully' : 'Product added successfully',
         color: 'green',
       });
+      setIsLoading(false);
       // Reset the form if not editing
       if (!isEdit) {
         setProduct({
@@ -114,11 +124,13 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
       onClose();
       window.location.reload();
     } catch (error) {
+      setIsLoading(false);
       setModalState({
         visible: true,
         message: error.response.data.error,
         color: 'red',
       });
+      setIsLoading(false);
       console.log(error.response);
     }
   };
@@ -126,6 +138,9 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
   const handleCloseModal = () => {
     setModalState({ ...modalState, visible: false });
   };
+  if (IsLoaing) {
+    return <Loading />;
+  }
 
   return (
     <FormContainer>
@@ -143,7 +158,7 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
             required
           />
           {product.sizes.map((sizeObj, index) => (
-            <Box key={index} sx={{ display: 'flex', gap: 2 }}>
+            <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <TextField
                 label={`Size ${index + 1}`}
                 value={sizeObj.size}
@@ -159,11 +174,16 @@ export default function NewProductForm({ productData = {}, isEdit = false, onClo
                 fullWidth
                 required
               />
+              <IconButton onClick={() => handleDeleteSize(index)} color="error">
+                <DeleteIcon />
+              </IconButton>
             </Box>
           ))}
-          <IconButton onClick={handleAddSize} color="primary">
-            +
-          </IconButton>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <IconButton onClick={handleAddSize} color="primary">
+              <AddIcon />
+            </IconButton>
+          </Box>
           <TextField
             name="buyingPrice"
             label="Buying Price"
