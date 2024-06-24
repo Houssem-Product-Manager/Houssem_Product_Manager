@@ -31,6 +31,7 @@ export default function ProductsView() {
       // Filter products with numberInStock > 0
       const availableProducts = response.data.filter((product) => product.numberInStock > 0);
       setProducts(availableProducts);
+      console.log(availableProducts);
       setFilteredProducts(availableProducts); // Initialize filtered products
       setIsloading(false);
       return availableProducts;

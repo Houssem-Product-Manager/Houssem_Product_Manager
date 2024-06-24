@@ -38,7 +38,6 @@ export default function AppView() {
       });
       setStats(response.data);
       setLoading(false);
-      console.log(response.data);
       // Use the data to update your dashboard components
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -105,7 +104,7 @@ export default function AppView() {
             icon={<img alt="icon" src="/assets/icons/glass/ic_glass_message.png" />}
           />
         </Grid>
-        
+
         <Grid xs={12} md={6} lg={8}>
           <AppWebsiteVisits
             title="Products Wise Profit"
@@ -130,20 +129,6 @@ export default function AppView() {
             icon={<img alt="icon" src="/assets/icons/glass/inventrory.png" />}
           />
         </Grid>
-
-        {/* <Grid xs={12} md={6} lg={4}>
-          <AppCurrentVisits
-            title="Current Visits"
-            chart={{
-              series: [
-                { label: 'America', value: 4344 },
-                { label: 'Asia', value: 5435 },
-                { label: 'Europe', value: 1443 },
-                { label: 'Africa', value: 4443 },
-              ],
-            }}
-          />
-        </Grid> */}
 
         <Grid xs={12} md={6} lg={8}>
           {stats && (

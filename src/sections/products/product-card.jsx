@@ -174,6 +174,12 @@ export default function ShopProductCard({ product }) {
       {product.priceToSell} TND
     </Typography>
   );
+  const age = (
+    <Typography variant="subtitle1" sx={{ color: product.isOldStock ? 'red' : 'blue' }}>
+      Age: &nbsp;
+      {product.ageInDays} Days {/* ({product.label}) */}
+    </Typography>
+  );
 
   return (
     <>
@@ -223,6 +229,9 @@ export default function ShopProductCard({ product }) {
           </Stack>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             {sellingSug}
+          </Stack>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            {age}
           </Stack>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             Buying Date: {format(new Date(product.buyingDate), 'yyyy-MM-dd')}
